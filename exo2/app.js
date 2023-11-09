@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_URL =
-  'https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/records?select=region,%20gazole_prix,%20sp95_prix,%20sp98_prix,%20adresse,%20cp,%20ville&where=code_region%20is%20not%20null';
+  'https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/records?select=region,%20gazole_prix,%20sp95_prix,%20sp98_prix,%20adresse,%20cp,%20ville&where=region%20is%20not%20null';
 
 async function getTotalCount() {
   try {
@@ -31,13 +31,24 @@ async function getAllResults(total_count) {
   return allResults;
 }
 
+function sortStationsByRegion(allResults) {
+  const stationsByRegion = allResults.reduce((groupedStations, currentStation) => {
+    const updatedGroupedStations = { ...groupedStations };
+    if (!updatedGroupedStations[currentStation.region]) {
+      updatedGroupedStations[currentStation.region] = [];
+    }
+    updatedGroupedStations[currentStation.region].push(currentStation);
+    return updatedGroupedStations;
+  }, {});
+  return Object.entries(stationsByRegion);
+}
+
 async function getCheapestFuelPricesByRegion() {
   try {
     const total_count = await getTotalCount();
     const allResults = await getAllResults(total_count);
-    if (total_count !== allResults.length) {
-      throw new Error('Error retrieving results');
-    }
+    const stationsByRegion = sortStationsByRegion(allResults);
+    console.log(stationsByRegion);
   } catch (error) {
     console.error(error.message);
   }
