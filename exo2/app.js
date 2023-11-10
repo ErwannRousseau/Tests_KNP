@@ -121,3 +121,11 @@ async function getCheapestFuelPricesByRegion() {
 }
 
 getCheapestFuelPricesByRegion();
+
+/**
+ * ? How to run this script
+ * Open a terminal and run the following commands:
+ * $ cd exo2
+ * $ npm install
+ * $ node exo2/app.js
+ */
