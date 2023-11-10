@@ -43,12 +43,78 @@ function sortStationsByRegion(allResults) {
   return Object.entries(stationsByRegion);
 }
 
+function findCheapestFuelInRegions(regionsArray) {
+  const result = [];
+
+  for (let i = 0; i < regionsArray.length; i++) {
+    const region = regionsArray[i];
+    const regionName = region[0];
+    const stations = region[1];
+
+    // Initializes minimum prices to null
+    let minGazolePrice = null;
+    let minSP95Price = null;
+    let minSP98Price = null;
+
+    for (let y = 0; y < stations.length; y++) {
+      const station = stations[y];
+      const { gazole_prix, sp95_prix, sp98_prix, adresse, cp, ville } = station;
+
+      // Converts prices into numbers for comparison
+      // Use Infinity as fallback value to avoid null comparison
+      const gazolePrice = gazole_prix !== null ? parseFloat(gazole_prix) : Infinity;
+      const sp95Price = sp95_prix !== null ? parseFloat(sp95_prix) : Infinity;
+      const sp98Price = sp98_prix !== null ? parseFloat(sp98_prix) : Infinity;
+
+      //  Update minimum prices
+      if (gazolePrice < minGazolePrice?.gazolePrice || minGazolePrice === null) {
+        minGazolePrice = { gazolePrice, adresse, cp, ville };
+      }
+
+      if (sp95Price < minSP95Price?.sp95Price || minSP95Price === null) {
+        minSP95Price = { sp95Price, adresse, cp, ville };
+      }
+
+      if (sp98Price < minSP98Price?.sp98Price || minSP98Price === null) {
+        minSP98Price = { sp98Price, adresse, cp, ville };
+      }
+    }
+
+    // Creates the result object for the region
+    const regionResult = {
+      region: regionName,
+      gazole: minGazolePrice !== null ? minGazolePrice : null,
+      sp95: minSP95Price !== null ? minSP95Price : null,
+      sp98: minSP98Price !== null ? minSP98Price : null,
+    };
+
+    // Adds the result object to the result array
+    result.push([regionResult]);
+  }
+
+  return result;
+}
+
+function displayCheapestFuelInRegions(cheapestFuelInRegions) {
+  for (let i = 0; i < cheapestFuelInRegions.length; i++) {
+    const region = cheapestFuelInRegions[i];
+    const { region: regionName, gazole, sp95, sp98 } = region[0];
+
+    console.log(`${regionName} :`);
+    console.log(`  Gazole : ${gazole.gazolePrice} € / ${gazole.adresse} ${gazole.cp} ${gazole.ville}`);
+    console.log(`  SP95 : ${sp95.sp95Price} € / ${sp95.adresse} ${sp95.cp} ${sp95.ville}`);
+    console.log(`  SP98 : ${sp98.sp98Price} € / ${sp98.adresse} ${sp98.cp} ${sp98.ville}`);
+    console.log('------------------------');
+  }
+}
+
 async function getCheapestFuelPricesByRegion() {
   try {
     const total_count = await getTotalCount();
     const allResults = await getAllResults(total_count);
     const stationsByRegion = sortStationsByRegion(allResults);
-    console.log(stationsByRegion);
+    const cheapestFuelInRegions = findCheapestFuelInRegions(stationsByRegion);
+    displayCheapestFuelInRegions(cheapestFuelInRegions);
   } catch (error) {
     console.error(error.message);
   }
